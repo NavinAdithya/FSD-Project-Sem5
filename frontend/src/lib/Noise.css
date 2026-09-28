@@ -1,0 +1,23 @@
+/* Noise overlay styles */
+.rr-noise-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  mix-blend-mode: overlay;
+}
+
+.rr-noise-canvas {
+  width: 100%;
+  height: 100%;
+  /* Tile the small grain canvas across the full viewport */
+  image-rendering: auto;
+  object-fit: none;
+  background-repeat: repeat;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-noise-overlay {
+    display: none;
+  }
+}

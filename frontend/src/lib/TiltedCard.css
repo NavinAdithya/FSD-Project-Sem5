@@ -1,0 +1,32 @@
+/* TiltedCard styles */
+.rr-tilted-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform var(--rr-dur-base) var(--rr-ease-out);
+  will-change: transform;
+}
+
+.rr-tilted-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  mix-blend-mode: overlay;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-tilted-card {
+    transition: none !important;
+    transform: none !important;
+  }
+  .rr-tilted-glare {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .rr-tilted-card {
+    transform: none !important;
+  }
+}

@@ -1,0 +1,33 @@
+/* SpotlightCard styles */
+.rr-spotlight-card {
+  position: relative;
+  overflow: hidden;
+  --rr-spot-x: -9999px;
+  --rr-spot-y: -9999px;
+  --rr-spot-color: rgba(107, 66, 184, 0.18);
+}
+
+.rr-spotlight-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    280px circle at var(--rr-spot-x) var(--rr-spot-y),
+    var(--rr-spot-color),
+    transparent 70%
+  );
+  transition: opacity 0.2s ease;
+}
+
+/* Ensure children appear above overlay */
+.rr-spotlight-card > *:not(.rr-spotlight-overlay) {
+  position: relative;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-spotlight-overlay {
+    display: none;
+  }
+}

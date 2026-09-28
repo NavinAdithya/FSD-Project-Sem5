@@ -1,0 +1,132 @@
+/* ============================================================
+   READING ROOM — Named Keyframes & Reduced-Motion Overrides
+   ============================================================ */
+
+/* ── Shared named keyframes ──────────────────────────────── */
+
+@keyframes rr-fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes rr-fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rr-slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes rr-slideInDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rr-scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rr-shake {
+  0%, 100% { transform: translateX(0); }
+  15%  { transform: translateX(-6px); }
+  30%  { transform: translateX(5px); }
+  45%  { transform: translateX(-4px); }
+  60%  { transform: translateX(4px); }
+  75%  { transform: translateX(-3px); }
+  90%  { transform: translateX(2px); }
+}
+
+@keyframes rr-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rr-pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(156, 58, 58, 0.30); }
+  50%       { box-shadow: 0 0 22px rgba(156, 58, 58, 0.60); }
+}
+
+@keyframes rr-pulse-success {
+  0%, 100% { box-shadow: 0 0 8px rgba(46, 125, 82, 0.30); }
+  50%       { box-shadow: 0 0 22px rgba(46, 125, 82, 0.55); }
+}
+
+@keyframes rr-shimmer {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center; }
+}
+
+@keyframes rr-progressBar {
+  from { width: 100%; }
+  to   { width: 0%; }
+}
+
+@keyframes rr-ringFill {
+  from { stroke-dashoffset: var(--rr-ring-start, 283); }
+  to   { stroke-dashoffset: var(--rr-ring-end, 0); }
+}
+
+/* ── Aurora keyframes (used by Aurora.jsx) ───────────────── */
+@keyframes rr-aurora-1 {
+  0%   { top: 0%; right: 0%; }
+  50%  { top: 10%; right: 10%; }
+  100% { top: 0%; right: 0%; }
+}
+@keyframes rr-aurora-2 {
+  0%   { top: 100%; left: 0%; }
+  50%  { top: 90%; left: 5%; }
+  100% { top: 100%; left: 0%; }
+}
+@keyframes rr-aurora-3 {
+  0%   { bottom: 0%; right: 0%; }
+  50%  { bottom: 10%; right: 10%; }
+  100% { bottom: 0%; right: 0%; }
+}
+@keyframes rr-aurora-4 {
+  0%   { bottom: 100%; left: 0%; }
+  50%  { bottom: 90%; left: 5%; }
+  100% { bottom: 100%; left: 0%; }
+}
+
+/* ── Silk / wave keyframes ───────────────────────────────── */
+@keyframes rr-silk-move {
+  0%   { transform: scale(1.0) rotate(0deg); }
+  33%  { transform: scale(1.05) rotate(1deg); }
+  66%  { transform: scale(0.98) rotate(-1deg); }
+  100% { transform: scale(1.0) rotate(0deg); }
+}
+
+/* ── Click spark ────────────────────────────────────────── */
+@keyframes rr-spark-fly {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--rr-dx), var(--rr-dy)) scale(0); opacity: 0; }
+}
+
+/* ── Reduced-motion: disable everything ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep opacity fades (they are safe) */
+  .rr-fade-in {
+    animation: rr-fadeIn 200ms ease !important;
+  }
+
+  /* Hide WebGL canvas */
+  .rr-three-canvas-wrap {
+    display: none !important;
+  }
+
+  /* Show static fallback */
+  .rr-three-fallback {
+    display: block !important;
+  }
+}

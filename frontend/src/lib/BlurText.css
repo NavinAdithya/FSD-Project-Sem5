@@ -1,0 +1,17 @@
+/* BlurText styles */
+.rr-blur-text {
+  display: inline;
+}
+.rr-blur-word {
+  display: inline-block;
+  will-change: opacity, filter, transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-blur-word {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
