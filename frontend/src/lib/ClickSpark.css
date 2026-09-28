@@ -1,0 +1,22 @@
+/* ClickSpark styles */
+.rr-click-spark-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.rr-spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rr-spark-color, #C89840);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: rr-spark-fly 0.55s var(--rr-ease-out) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rr-spark {
+    display: none;
+  }
+}

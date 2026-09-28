@@ -1,0 +1,14 @@
+/* Aurora background wrapper styles */
+.rr-aurora-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.rr-aurora-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
