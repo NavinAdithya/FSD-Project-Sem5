@@ -49,7 +49,7 @@ export default function Catalog({ role, books, reservations, queueSummary, onAdd
     <section className="rr-screen">
       <header className="rr-header rr-header-row">
         <div>
-          <motion.h1 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+          <motion.h1 initial={{ opacity: 0, y: 24, filter: "blur(10px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
             Catalog
           </motion.h1>
           <p>{role === "librarian" ? "Every title in the collection, filed by call number." : "Browse the collection and reserve a title if every copy is out."}</p>
@@ -70,7 +70,7 @@ export default function Catalog({ role, books, reservations, queueSummary, onAdd
       {/* Search */}
       <motion.div
         className={`rr-search ${searchFocused ? "rr-search-focused" : ""}`}
-        animate={{ boxShadow: searchFocused ? "0 0 0 3px rgba(74,44,138,0.22)" : "none" }}
+        animate={{ boxShadow: searchFocused ? "0 0 0 4px rgba(212,165,90,0.16), 0 18px 40px -18px rgba(212,165,90,0.35)" : "none" }}
       >
         <Search size={15} strokeWidth={1.75} />
         <input

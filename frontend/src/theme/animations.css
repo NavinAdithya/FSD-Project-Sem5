@@ -44,13 +44,13 @@
 }
 
 @keyframes rr-pulse-glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(156, 58, 58, 0.30); }
-  50%       { box-shadow: 0 0 22px rgba(156, 58, 58, 0.60); }
+  0%, 100% { box-shadow: 0 0 8px rgba(238, 138, 120, 0.25); }
+  50%       { box-shadow: 0 0 22px rgba(238, 138, 120, 0.5); }
 }
 
 @keyframes rr-pulse-success {
-  0%, 100% { box-shadow: 0 0 8px rgba(46, 125, 82, 0.30); }
-  50%       { box-shadow: 0 0 22px rgba(46, 125, 82, 0.55); }
+  0%, 100% { box-shadow: 0 0 8px rgba(147, 198, 161, 0.25); }
+  50%       { box-shadow: 0 0 22px rgba(147, 198, 161, 0.5); }
 }
 
 @keyframes rr-shimmer {
@@ -68,34 +68,31 @@
   to   { stroke-dashoffset: var(--rr-ring-end, 0); }
 }
 
-/* ── Aurora keyframes (used by Aurora.jsx) ───────────────── */
-@keyframes rr-aurora-1 {
-  0%   { top: 0%; right: 0%; }
-  50%  { top: 10%; right: 10%; }
-  100% { top: 0%; right: 0%; }
+/* ── Ambient scene & glass motion ─────────────────────── */
+@keyframes rr-orb-a {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(8vw, 6vw, 0) scale(1.15); }
 }
-@keyframes rr-aurora-2 {
-  0%   { top: 100%; left: 0%; }
-  50%  { top: 90%; left: 5%; }
-  100% { top: 100%; left: 0%; }
+@keyframes rr-orb-b {
+  from { transform: translate3d(0, 0, 0) scale(1.1); }
+  to   { transform: translate3d(-10vw, -5vw, 0) scale(0.95); }
 }
-@keyframes rr-aurora-3 {
-  0%   { bottom: 0%; right: 0%; }
-  50%  { bottom: 10%; right: 10%; }
-  100% { bottom: 0%; right: 0%; }
+@keyframes rr-scene-in {
+  from { opacity: 0; transform: scale(1.06); }
+  to   { opacity: 1; transform: scale(1); }
 }
-@keyframes rr-aurora-4 {
-  0%   { bottom: 100%; left: 0%; }
-  50%  { bottom: 90%; left: 5%; }
-  100% { bottom: 100%; left: 0%; }
+@keyframes rr-breathe {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.55; transform: scale(0.82); }
 }
-
-/* ── Silk / wave keyframes ───────────────────────────────── */
-@keyframes rr-silk-move {
-  0%   { transform: scale(1.0) rotate(0deg); }
-  33%  { transform: scale(1.05) rotate(1deg); }
-  66%  { transform: scale(0.98) rotate(-1deg); }
-  100% { transform: scale(1.0) rotate(0deg); }
+@keyframes rr-ping {
+  0%   { box-shadow: 0 0 0 0 rgba(238, 138, 120, 0.55); }
+  80%  { box-shadow: 0 0 0 10px rgba(238, 138, 120, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(238, 138, 120, 0); }
+}
+@keyframes rr-rail-in {
+  from { opacity: 0; transform: translateX(-24px) scale(0.98); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 /* ── Click spark ────────────────────────────────────────── */
@@ -120,13 +117,5 @@
     animation: rr-fadeIn 200ms ease !important;
   }
 
-  /* Hide WebGL canvas */
-  .rr-three-canvas-wrap {
-    display: none !important;
-  }
-
-  /* Show static fallback */
-  .rr-three-fallback {
-    display: block !important;
-  }
+  .rr-scene-orb { animation: none !important; }
 }

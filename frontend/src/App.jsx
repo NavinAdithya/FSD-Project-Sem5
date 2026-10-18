@@ -1,9 +1,7 @@
 /**
- * READING ROOM — App.jsx (Bibliotheca Aurora Redesign)
- * 
- * All business logic and state remain identical to the original.
- * The render tree now delegates to new components/screens.
- * Zero functional regressions from the original App.jsx.
+ * READING ROOM — App.jsx
+ *
+ * All business logic and state live here; screens are presentational.
  */
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,6 +19,7 @@ import LoginGate      from "./components/LoginGate.jsx";
 import NavRail        from "./components/NavRail.jsx";
 import CursorGlow     from "./components/CursorGlow.jsx";
 import Noise          from "./lib/Noise.jsx";
+import SceneLayer     from "./three/SceneLayer.jsx";
 
 // ── Screens ─────────────────────────────────────────────────
 import Dashboard        from "./screens/Dashboard.jsx";
@@ -324,192 +323,128 @@ export default function App() {
   const effectiveTab  = allowedTabs.includes(tab) ? tab : allowedTabs[0];
 
   /* ==========================================================
-     Render — loading splash
+     Render — one persistent shell. The 3D room is mounted once
+     here so signing in moves the camera instead of remounting.
      ========================================================== */
-  if (!sessionChecked) {
-    return (
-      <div className="rr-root" style={{ alignItems: "center", justifyContent: "center" }}>
-        <ToastStack toasts={toasts} onDismiss={dismissToast} />
-        <div className="rr-loading">
-          <Loader2 className="rr-spin" size={20} />
-          <span>Opening the register…</span>
-        </div>
-      </div>
-    );
-  }
+  const pageMotion = {
+    initial: { opacity: 0, y: 16, scale: 0.995 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: -8, transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } },
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+  };
 
-  /* ==========================================================
-     Render — gate (not logged in)
-     ========================================================== */
-  if (!role) {
-    return (
-      <div className="rr-root">
-        <CursorGlow />
-        <Noise opacity={0.025} />
-        <ToastStack toasts={toasts} onDismiss={dismissToast} />
-        <LoginGate
-          onLibrarianLogin={doLibrarianLogin}
-          onMemberLogin={doMemberLogin}
-          onMemberRegister={doMemberRegister}
-        />
-      </div>
-    );
-  }
-
-  /* ==========================================================
-     Render — main app shell
-     ========================================================== */
-  return (
-    <div className="rr-root">
-      <CursorGlow />
-      <Noise opacity={0.025} />
-      <ToastStack toasts={toasts} onDismiss={dismissToast} />
-
-      <NavRail
+  const screens = {
+    dashboard: role === "librarian" && (
+      <Dashboard stats={stats} books={books} members={members} loans={loans} />
+    ),
+    catalog: (
+      <Catalog
         role={role}
-        librarianName={librarianName}
-        member={member}
-        stats={stats}
-        tab={effectiveTab}
-        onTabChange={(t) => setTab(t)}
-        onSignOut={signOut}
+        books={books}
+        reservations={reservations}
+        queueSummary={queueSummary}
+        onAdd={addBook}
+        onDelete={deleteBook}
+        onReserve={reserveBook}
       />
+    ),
+    members: role === "librarian" && (
+      <Members members={members} loans={loans} onAdd={addMember} onDelete={deleteMember} />
+    ),
+    circulation: role === "librarian" && (
+      <Circulation
+        books={books}
+        members={members}
+        loans={loans}
+        reservations={reservations}
+        onIssue={issueBook}
+        onReturn={returnBook}
+        onRenew={renewLoan}
+      />
+    ),
+    reservations: role === "librarian" && (
+      <ReservationsPanel reservations={reservations} books={books} members={members} onCancel={cancelReservation} />
+    ),
+    fines: role === "librarian" && (
+      <FinesPanel
+        loans={loans}
+        books={books}
+        members={members}
+        onMarkPaid={markFinePaid}
+        onExport={() => api.downloadCsv()}
+      />
+    ),
+    account: role === "member" && (
+      <MyAccount
+        member={member}
+        books={books}
+        loans={loans}
+        queueSummary={queueSummary}
+        onRenew={renewLoan}
+        onLoadReservations={api.getMyReservations}
+        onCancelReservation={cancelReservation}
+        addToast={addToast}
+      />
+    ),
+  };
 
-      <main className="rr-main">
-        {dataLoading ? (
-          <div className="rr-loading">
-            <Loader2 className="rr-spin" size={18} />
-            <span>Loading…</span>
+  let content;
+  if (!sessionChecked) {
+    content = (
+      <div className="rr-splash">
+        <Loader2 className="rr-spin" size={18} />
+        <span>Opening the register…</span>
+      </div>
+    );
+  } else if (!role) {
+    content = (
+      <LoginGate
+        onLibrarianLogin={doLibrarianLogin}
+        onMemberLogin={doMemberLogin}
+        onMemberRegister={doMemberRegister}
+      />
+    );
+  } else {
+    content = (
+      <>
+        <NavRail
+          role={role}
+          librarianName={librarianName}
+          member={member}
+          stats={stats}
+          tab={effectiveTab}
+          onTabChange={(t) => setTab(t)}
+          onSignOut={signOut}
+        />
+        <main className="rr-main" id="main">
+          <div className="rr-main-inner">
+            {dataLoading ? (
+              <div className="rr-loading">
+                <Loader2 className="rr-spin" size={18} />
+                <span>Loading the shelves…</span>
+              </div>
+            ) : (
+              <AnimatePresence mode="wait">
+                <motion.div key={effectiveTab} {...pageMotion}>
+                  {screens[effectiveTab]}
+                </motion.div>
+              </AnimatePresence>
+            )}
           </div>
-        ) : (
-          <AnimatePresence mode="wait">
-            {effectiveTab === "dashboard" && role === "librarian" && (
-              <motion.div
-                key="dashboard"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <Dashboard stats={stats} books={books} members={members} loans={loans} />
-              </motion.div>
-            )}
+        </main>
+      </>
+    );
+  }
 
-            {effectiveTab === "catalog" && (
-              <motion.div
-                key="catalog"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <Catalog
-                  role={role}
-                  books={books}
-                  reservations={reservations}
-                  queueSummary={queueSummary}
-                  onAdd={addBook}
-                  onDelete={deleteBook}
-                  onReserve={reserveBook}
-                />
-              </motion.div>
-            )}
-
-            {effectiveTab === "members" && role === "librarian" && (
-              <motion.div
-                key="members"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <Members
-                  members={members}
-                  loans={loans}
-                  onAdd={addMember}
-                  onDelete={deleteMember}
-                />
-              </motion.div>
-            )}
-
-            {effectiveTab === "circulation" && role === "librarian" && (
-              <motion.div
-                key="circulation"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <Circulation
-                  books={books}
-                  members={members}
-                  loans={loans}
-                  reservations={reservations}
-                  onIssue={issueBook}
-                  onReturn={returnBook}
-                  onRenew={renewLoan}
-                />
-              </motion.div>
-            )}
-
-            {effectiveTab === "reservations" && role === "librarian" && (
-              <motion.div
-                key="reservations"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <ReservationsPanel
-                  reservations={reservations}
-                  books={books}
-                  members={members}
-                  onCancel={cancelReservation}
-                />
-              </motion.div>
-            )}
-
-            {effectiveTab === "fines" && role === "librarian" && (
-              <motion.div
-                key="fines"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <FinesPanel
-                  loans={loans}
-                  books={books}
-                  members={members}
-                  onMarkPaid={markFinePaid}
-                  onExport={() => api.downloadCsv()}
-                />
-              </motion.div>
-            )}
-
-            {effectiveTab === "account" && role === "member" && (
-              <motion.div
-                key="account"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              >
-                <MyAccount
-                  member={member}
-                  books={books}
-                  loans={loans}
-                  queueSummary={queueSummary}
-                  onRenew={renewLoan}
-                  onLoadReservations={api.getMyReservations}
-                  onCancelReservation={cancelReservation}
-                  addToast={addToast}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
-      </main>
+  return (
+    <div className={`rr-root ${role ? "is-app" : "is-gate"}`}>
+      <a className="rr-skip" href="#main">Skip to content</a>
+      <SceneLayer variant={role ? "app" : "gate"} />
+      <div className="rr-vignette" aria-hidden="true" />
+      <CursorGlow />
+      <Noise opacity={0.05} />
+      <ToastStack toasts={toasts} onDismiss={dismissToast} />
+      {content}
     </div>
   );
 }

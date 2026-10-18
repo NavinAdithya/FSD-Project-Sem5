@@ -44,7 +44,7 @@ export default function Circulation({ books, members, loans, reservations, onIss
   return (
     <section className="rr-screen">
       <header className="rr-header">
-        <motion.h1 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+        <motion.h1 initial={{ opacity: 0, y: 24, filter: "blur(10px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
           Circulation desk
         </motion.h1>
         <p>Issue a title to a member, and check in returns.</p>
@@ -73,7 +73,7 @@ export default function Circulation({ books, members, loans, reservations, onIss
           <label>Loan period (days)
             <input type="number" min="1" value={days} onChange={(e) => setDays(e.target.value)} aria-label="Loan period in days" />
           </label>
-          <ClickSpark color="#C89840">
+          <ClickSpark color="#E6C285">
             <motion.button
               className="rr-btn rr-btn-primary"
               disabled={!canIssue}
@@ -153,7 +153,7 @@ export default function Circulation({ books, members, loans, reservations, onIss
                           >
                             <RefreshCw size={13} /> Renew
                           </button>
-                          <ClickSpark color="#2E7D52">
+                          <ClickSpark color="#93C6A1">
                             <button className="rr-btn rr-btn-small" onClick={() => onReturn(l.id)} aria-label="Return book">
                               <CheckCircle2 size={13} /> Return
                             </button>

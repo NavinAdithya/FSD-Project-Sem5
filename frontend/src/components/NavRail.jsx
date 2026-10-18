@@ -5,7 +5,6 @@ import {
   Bookmark, Banknote, UserCircle, ShieldCheck,
   LogOut, BookOpen
 } from "lucide-react";
-import Aurora from "../lib/Aurora.jsx";
 
 export default function NavRail({ role, librarianName, member, stats, tab, onTabChange, onSignOut }) {
   const librarianTabs = [
@@ -24,16 +23,6 @@ export default function NavRail({ role, librarianName, member, stats, tab, onTab
 
   return (
     <aside className="rr-rail" aria-label="Navigation">
-      {/* Silk-like aurora in the rail background */}
-      <div className="rr-rail-aurora" aria-hidden="true">
-        <Aurora
-          colorStops={["#4A2C8A", "#1E3A5A", "#6B42B8"]}
-          amplitude={0.6}
-          speed={0.2}
-          blend={0.35}
-        />
-      </div>
-
       {/* Brand */}
       <div className="rr-brand">
         <div className="rr-brand-icon" aria-hidden="true">
@@ -62,10 +51,12 @@ export default function NavRail({ role, librarianName, member, stats, tab, onTab
                 <motion.div
                   className="rr-nav-active-pill"
                   layoutId="nav-pill"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                />
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                >
+                  <span className="rr-nav-active-bar" />
+                </motion.div>
               )}
-              <Icon size={17} strokeWidth={1.75} className="rr-nav-icon" />
+              <Icon size={17} strokeWidth={1.5} className="rr-nav-icon" />
               <span>{t.label}</span>
             </button>
           );
@@ -81,10 +72,17 @@ export default function NavRail({ role, librarianName, member, stats, tab, onTab
           }
         </div>
         <div className="rr-rail-stat">
+          <div className="rr-rail-meter" aria-hidden="true">
+            <motion.span
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: stats.totalCopies ? stats.availableCopies / stats.totalCopies : 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+            />
+          </div>
           <span>{stats.availableCopies}</span> of {stats.totalCopies} copies on shelf
         </div>
         <button className="rr-nav-item rr-signout" onClick={onSignOut} aria-label="Sign out">
-          <LogOut size={15} strokeWidth={1.75} className="rr-nav-icon" />
+          <LogOut size={15} strokeWidth={1.5} className="rr-nav-icon" />
           <span>Sign out</span>
         </button>
       </div>

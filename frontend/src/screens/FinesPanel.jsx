@@ -38,7 +38,7 @@ export default function FinesPanel({ loans, books, members, onMarkPaid, onExport
     <section className="rr-screen">
       <header className="rr-header rr-header-row">
         <div>
-          <motion.h1 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+          <motion.h1 initial={{ opacity: 0, y: 24, filter: "blur(10px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
             Fines
           </motion.h1>
           <p>Overdue returns are charged ₹{FINE_PER_DAY} per day late.</p>

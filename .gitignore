@@ -2,3 +2,4 @@ node_modules/
 dist/
 backend/data/db.json
 .env
+.playwright-mcp/

@@ -1,57 +1,74 @@
 /* ============================================================
-   READING ROOM — Design System Tokens (Bibliotheca Aurora)
-   All variables prefixed --rr-* to avoid collision with legacy --lms-* vars
+   READING ROOM — Design tokens ("Midnight Reading Room")
+   One committed dark theme: ink canvas, frosted glass, a single
+   warm brass accent. Moonlight blue lives only in the 3D lighting.
+   Variable names are kept from the previous system so every
+   existing rule keeps resolving.
    ============================================================ */
 
 :root {
-  /* ── Palette: Bibliotheca Aurora (light) ────────────────── */
-  --rr-primary:          #4A2C8A;
-  --rr-primary-dim:      #6B42B8;
-  --rr-primary-muted:    rgba(74, 44, 138, 0.12);
-  --rr-secondary:        #1E5C8A;
-  --rr-accent:           #A0722A;
-  --rr-accent-bright:    #C89840;
-  --rr-accent-muted:     rgba(160, 114, 42, 0.15);
-  --rr-success:          #2E7D52;
-  --rr-success-muted:    rgba(46, 125, 82, 0.13);
-  --rr-danger:           #9C3A3A;
-  --rr-danger-muted:     rgba(156, 58, 58, 0.13);
-  --rr-warning:          #8A6000;
-  --rr-warning-muted:    rgba(138, 96, 0, 0.12);
+  color-scheme: dark;
 
-  /* ── Surfaces (light) ───────────────────────────────────── */
-  --rr-bg:               #F2EDE4;
-  --rr-bg-alt:           #EDE7DA;
-  --rr-surface:          rgba(255, 255, 255, 0.52);
-  --rr-surface-strong:   rgba(255, 255, 255, 0.76);
-  --rr-surface-hover:    rgba(255, 255, 255, 0.88);
-  --rr-border:           rgba(255, 255, 255, 0.68);
-  --rr-border-subtle:    rgba(74, 44, 138, 0.10);
-  --rr-line:             rgba(30, 24, 48, 0.10);
+  /* ── Accent (brass) — the only accent colour ─────────────── */
+  --rr-primary:          #D4A55A;
+  --rr-primary-dim:      #E6C285;
+  --rr-primary-muted:    rgba(212, 165, 90, 0.14);
+  --rr-primary-glow:     rgba(212, 165, 90, 0.38);
+  --rr-accent:           #D4A55A;
+  --rr-accent-bright:    #E6C285;
+  --rr-accent-muted:     rgba(212, 165, 90, 0.14);
+  --rr-secondary:        #9DB4D0; /* moonlight — 3D lighting / rare highlights */
 
-  /* ── Rail (sidebar) ─────────────────────────────────────── */
-  --rr-rail-bg:          rgba(20, 12, 42, 0.82);
-  --rr-rail-border:      rgba(120, 90, 200, 0.18);
-  --rr-rail-text:        #D8D0F0;
-  --rr-rail-text-soft:   #9890B8;
-  --rr-rail-active:      rgba(107, 66, 184, 0.90);
-  --rr-rail-hover:       rgba(255, 255, 255, 0.07);
+  /* ── Status (desaturated so they sit inside the palette) ─── */
+  --rr-success:          #93C6A1;
+  --rr-success-muted:    rgba(147, 198, 161, 0.13);
+  --rr-danger:           #EE8A78;
+  --rr-danger-muted:     rgba(238, 138, 120, 0.13);
+  --rr-warning:          #E7BE6B;
+  --rr-warning-muted:    rgba(231, 190, 107, 0.13);
 
-  /* ── Text (light) ───────────────────────────────────────── */
-  --rr-text:             #1E1830;
-  --rr-text-soft:        #5A5270;
-  --rr-text-xsoft:       #6C6780;
-  --rr-text-on-dark:     #EDE8F8;
-  --rr-text-on-primary:  #FFFFFF;
+  /* ── Canvas & glass ─────────────────────────────────────── */
+  --rr-bg:               #07080C;
+  --rr-bg-alt:           #0C0E14;
+  --rr-surface:          rgba(22, 25, 34, 0.46);
+  --rr-surface-strong:   rgba(17, 19, 27, 0.78);
+  --rr-surface-glass:    rgba(20, 23, 32, 0.56);
+  --rr-surface-hover:    rgba(34, 38, 50, 0.58);
+  --rr-surface-inset:    rgba(255, 255, 255, 0.035);
+  --rr-shell:            rgba(255, 255, 255, 0.028);
+  --rr-border:           rgba(255, 255, 255, 0.085);
+  --rr-border-strong:    rgba(255, 255, 255, 0.14);
+  --rr-border-subtle:    rgba(255, 255, 255, 0.07);
+  --rr-highlight:        rgba(255, 255, 255, 0.10);
+  --rr-line:             rgba(255, 255, 255, 0.06);
 
-  /* ── Gradients ──────────────────────────────────────────── */
+  /* ── Rail ──────────────────────────────────────────────── */
+  --rr-rail-bg:          rgba(12, 14, 20, 0.58);
+  --rr-rail-border:      rgba(255, 255, 255, 0.08);
+  --rr-rail-text:        #E9E5DD;
+  --rr-rail-text-soft:   #9D998F;
+  --rr-rail-active:      rgba(212, 165, 90, 0.12);
+  --rr-rail-hover:       rgba(255, 255, 255, 0.05);
+
+  /* ── Text (parchment on ink) ──────────────────────────── */
+  --rr-text:             #EEEAE2;
+  --rr-text-soft:        #A9A49A;
+  --rr-text-xsoft:       #928D83;
+  --rr-text-on-dark:     #EEEAE2;
+  --rr-text-on-primary:  #1B1407;
+
+  /* ── Background (behind the WebGL scene / fallback) ───── */
   --rr-bg-gradient:
-    radial-gradient(ellipse 80% 60% at 15% -10%, rgba(180, 140, 255, 0.28) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 88% 8%,  rgba(120, 180, 240, 0.22) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 45% at 42% 105%,rgba(200, 152, 64, 0.20) 0%, transparent 50%),
-    #F2EDE4;
+    radial-gradient(ellipse 70% 55% at 12% 0%, rgba(157, 180, 208, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 92% 100%, rgba(212, 165, 90, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 50% 50%, #0C0E15 0%, #07080C 70%);
 
-  /* ── Spacing ─────────────────────────────────────────────── */
+  /* ── Type ─────────────────────────────────────────────── */
+  --rr-font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --rr-font-sans:    "Geist", "Segoe UI", system-ui, sans-serif;
+  --rr-font-mono:    "Geist Mono", "SFMono-Regular", Menlo, monospace;
+
+  /* ── Spacing ──────────────────────────────────────────── */
   --rr-space-2xs: 2px;
   --rr-space-xs:  4px;
   --rr-space-sm:  8px;
@@ -60,96 +77,53 @@
   --rr-space-xl:  40px;
   --rr-space-2xl: 64px;
 
-  /* ── Radius ─────────────────────────────────────────────── */
-  --rr-radius-xs: 4px;
-  --rr-radius-sm: 8px;
-  --rr-radius-md: 14px;
-  --rr-radius-lg: 20px;
-  --rr-radius-xl: 28px;
+  /* ── Radius (varied: tight inside, soft outside) ──────── */
+  --rr-radius-xs:   6px;
+  --rr-radius-sm:   10px;
+  --rr-radius-md:   18px;
+  --rr-radius-lg:   26px;
+  --rr-radius-xl:   34px;
   --rr-radius-pill: 999px;
 
-  /* ── Shadows ─────────────────────────────────────────────── */
-  --rr-shadow-xs:   0 2px 8px rgba(74, 44, 138, 0.08);
-  --rr-shadow-sm:   0 4px 16px rgba(74, 44, 138, 0.10);
-  --rr-shadow-md:   0 10px 36px rgba(74, 44, 138, 0.15);
-  --rr-shadow-lg:   0 24px 64px rgba(74, 44, 138, 0.20);
-  --rr-shadow-xl:   0 40px 100px rgba(74, 44, 138, 0.25);
-  --rr-shadow-glow: 0 0 32px rgba(107, 66, 184, 0.30);
-  --rr-shadow-glow-accent: 0 0 24px rgba(200, 152, 64, 0.35);
-  --rr-shadow-danger: 0 0 20px rgba(156, 58, 58, 0.25);
+  /* ── Shadows (tinted ink, never pure black) ───────────── */
+  --rr-shadow-xs:   0 2px 8px rgba(2, 3, 8, 0.35);
+  --rr-shadow-sm:   0 8px 24px -8px rgba(2, 3, 8, 0.55);
+  --rr-shadow-md:   0 18px 48px -14px rgba(2, 3, 8, 0.70);
+  --rr-shadow-lg:   0 30px 80px -20px rgba(2, 3, 8, 0.80);
+  --rr-shadow-xl:   0 50px 120px -30px rgba(2, 3, 8, 0.90);
+  --rr-shadow-glow: 0 0 40px -6px rgba(212, 165, 90, 0.35);
+  --rr-shadow-glow-accent: 0 0 28px rgba(212, 165, 90, 0.30);
+  --rr-shadow-danger: 0 0 28px -4px rgba(238, 138, 120, 0.35);
+  --rr-glass-edge:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.10),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035);
 
-  /* ── Blur ────────────────────────────────────────────────── */
+  /* ── Blur ─────────────────────────────────────────────── */
   --rr-blur-xs: 8px;
   --rr-blur-sm: 14px;
   --rr-blur-md: 22px;
-  --rr-blur-lg: 36px;
-  --rr-blur-xl: 60px;
+  --rr-blur-lg: 32px;
+  --rr-blur-xl: 48px;
 
-  /* ── Motion ─────────────────────────────────────────────── */
-  --rr-dur-instant: 80ms;
-  --rr-dur-fast:    150ms;
-  --rr-dur-base:    280ms;
-  --rr-dur-slow:    520ms;
-  --rr-dur-xslow:   800ms;
+  /* ── Motion ───────────────────────────────────────────── */
+  --rr-dur-instant: 90ms;
+  --rr-dur-fast:    180ms;
+  --rr-dur-base:    320ms;
+  --rr-dur-slow:    620ms;
+  --rr-dur-xslow:   900ms;
 
   --rr-ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
   --rr-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --rr-ease-inout:  cubic-bezier(0.45, 0, 0.55, 1);
+  --rr-ease-inout:  cubic-bezier(0.65, 0, 0.35, 1);
   --rr-ease-in:     cubic-bezier(0.55, 0, 1, 0.45);
-}
+  --rr-ease-fluid:  cubic-bezier(0.32, 0.72, 0, 1);
 
-/* ── Dark mode ──────────────────────────────────────────────── */
-[data-theme="dark"] {
-  --rr-bg:              #0E0B18;
-  --rr-bg-alt:          #130F22;
-  --rr-surface:         rgba(30, 22, 55, 0.62);
-  --rr-surface-strong:  rgba(40, 30, 72, 0.82);
-  --rr-surface-hover:   rgba(55, 42, 95, 0.90);
-  --rr-border:          rgba(120, 100, 200, 0.22);
-  --rr-border-subtle:   rgba(120, 100, 200, 0.12);
-  --rr-line:            rgba(160, 140, 220, 0.10);
-
-  --rr-rail-bg:         rgba(8, 5, 18, 0.90);
-  --rr-rail-border:     rgba(80, 60, 150, 0.20);
-
-  --rr-text:            #EDE8F8;
-  --rr-text-soft:       #9B94BC;
-  --rr-text-xsoft:      #7D779B;
-
-  --rr-bg-gradient:
-    radial-gradient(ellipse 80% 60% at 15% -10%, rgba(107, 66, 184, 0.20) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 88% 8%,  rgba(30, 92, 138, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 45% at 42% 105%,rgba(160, 114, 42, 0.12) 0%, transparent 50%),
-    #0E0B18;
-
-  --rr-shadow-md:   0 10px 36px rgba(0, 0, 0, 0.40);
-  --rr-shadow-lg:   0 24px 64px rgba(0, 0, 0, 0.55);
-  --rr-shadow-glow: 0 0 40px rgba(107, 66, 184, 0.40);
-}
-
-/* ── OS dark mode fallback (no toggle) ────────────────────── */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --rr-bg:              #0E0B18;
-    --rr-bg-alt:          #130F22;
-    --rr-surface:         rgba(30, 22, 55, 0.62);
-    --rr-surface-strong:  rgba(40, 30, 72, 0.82);
-    --rr-surface-hover:   rgba(55, 42, 95, 0.90);
-    --rr-border:          rgba(120, 100, 200, 0.22);
-    --rr-border-subtle:   rgba(120, 100, 200, 0.12);
-    --rr-line:            rgba(160, 140, 220, 0.10);
-    --rr-rail-bg:         rgba(8, 5, 18, 0.90);
-    --rr-rail-border:     rgba(80, 60, 150, 0.20);
-    --rr-text:            #EDE8F8;
-    --rr-text-soft:       #9B94BC;
-    --rr-text-xsoft:      #7D779B;
-    --rr-bg-gradient:
-      radial-gradient(ellipse 80% 60% at 15% -10%, rgba(107, 66, 184, 0.20) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 50% at 88% 8%,  rgba(30, 92, 138, 0.18) 0%, transparent 55%),
-      radial-gradient(ellipse 55% 45% at 42% 105%,rgba(160, 114, 42, 0.12) 0%, transparent 50%),
-      #0E0B18;
-    --rr-shadow-md:   0 10px 36px rgba(0, 0, 0, 0.40);
-    --rr-shadow-lg:   0 24px 64px rgba(0, 0, 0, 0.55);
-    --rr-shadow-glow: 0 0 40px rgba(107, 66, 184, 0.40);
-  }
+  /* ── Layers ───────────────────────────────────────────── */
+  --rr-z-scene:   0;
+  --rr-z-content: 2;
+  --rr-z-rail:    5;
+  --rr-z-glow:    6;
+  --rr-z-modal:   40;
+  --rr-z-toast:   50;
+  --rr-z-grain:   60;
 }
