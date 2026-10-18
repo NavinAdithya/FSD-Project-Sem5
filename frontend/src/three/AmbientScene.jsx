@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useEffect, useState } from "react";
+import React, { useCallback, useMemo, useRef, useEffect, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer, PerformanceMonitor } from "@react-three/drei";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
@@ -8,15 +8,18 @@ import * as THREE from "three";
 /**
  * AmbientScene — one persistent WebGL layer behind the whole app.
  *
- * Books are built like real hardcovers: two cover boards overhanging a
- * page block, a rounded spine with raised bands and a label, paper-line
- * page edges (some gilded) and a tooled gold frame on the front board.
- * Every book shares the same unit geometry and per-leather materials, so
- * the whole shelf costs a handful of materials and ~100 draw calls.
+ * Startup is staged so the main thread is never blocked for long:
+ *   1. The canvas mounts with its render loop OFF.
+ *   2. Shaders are compiled with compileAsync (parallel, non-blocking).
+ *   3. The loop starts, a few frames render, and only then does the layer
+ *      fade in (opacity only — compositor work).
+ *   4. Books arrive one at a time with a short grow-in, so mesh/uniform
+ *      setup is spread over ~2 seconds instead of landing in one frame.
+ * Geometry and materials are shared by every book.
  *
  * variant="gate": books frame the sign-in screen at 60 fps.
- * variant="app":  the room recedes and renders at 30 fps so the glass UI
- *                 on top stays smooth.
+ * variant="app":  the room recedes into fog and renders at 30 fps so the
+ *                 glass UI on top stays smooth.
  */
 
 /* ── unit book dimensions (scaled per book) ─────────────── */
@@ -43,44 +46,39 @@ function rand(seed) {
   return x - Math.floor(x);
 }
 
-/* ── procedural textures (built once) ───────────────────── */
+/* ── procedural textures (built once, kept small) ───────── */
 function canvasTexture(w, h, draw) {
   const c = document.createElement("canvas");
   c.width = w;
   c.height = h;
   draw(c.getContext("2d"), w, h);
   const t = new THREE.CanvasTexture(c);
-  t.anisotropy = 4;
+  t.anisotropy = 2;
   return t;
 }
 
 function makeTextures() {
-  // leather grain: soft cellular noise used as bump + roughness
-  const grain = canvasTexture(256, 256, (g, w, h) => {
+  const grain = canvasTexture(128, 128, (g, w, h) => {
     g.fillStyle = "#808080";
     g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 2600; i++) {
-      const x = rand(i + 1) * w;
-      const y = rand(i + 2) * h;
-      const r = 1 + rand(i + 3) * 3.2;
+    for (let i = 0; i < 700; i++) {
+      const r = 0.8 + rand(i + 3) * 2.4;
       const v = 90 + rand(i + 4) * 90;
-      g.fillStyle = `rgba(${v},${v},${v},0.35)`;
+      g.fillStyle = `rgba(${v},${v},${v},0.38)`;
       g.beginPath();
-      g.arc(x, y, r, 0, Math.PI * 2);
+      g.arc(rand(i + 1) * w, rand(i + 2) * h, r, 0, Math.PI * 2);
       g.fill();
     }
   });
   grain.wrapS = grain.wrapT = THREE.RepeatWrapping;
-  grain.repeat.set(2, 3);
+  grain.repeat.set(3, 4);
 
-  // page edges: hundreds of fine sheet lines
   const pages = (base, line) =>
-    canvasTexture(512, 8, (g, w, h) => {
+    canvasTexture(256, 4, (g, w, h) => {
       g.fillStyle = base;
       g.fillRect(0, 0, w, h);
       for (let x = 0; x < w; x += 2) {
-        const a = 0.08 + rand(x) * 0.22;
-        g.fillStyle = `rgba(${line},${a})`;
+        g.fillStyle = `rgba(${line},${0.08 + rand(x) * 0.22})`;
         g.fillRect(x, 0, 1, h);
       }
     });
@@ -94,26 +92,23 @@ function makeTextures() {
     return c;
   };
 
-  // tooled frame + centre ornament for the front board (alpha mask)
-  const tooling = canvasTexture(256, 360, (g, w, h) => {
+  const tooling = canvasTexture(128, 180, (g, w, h) => {
     g.clearRect(0, 0, w, h);
     g.strokeStyle = "#fff";
     g.fillStyle = "#fff";
-    g.lineWidth = 3;
-    g.strokeRect(18, 18, w - 36, h - 36);
+    g.lineWidth = 2;
+    g.strokeRect(9, 9, w - 18, h - 18);
+    g.lineWidth = 1;
+    g.strokeRect(14, 14, w - 28, h - 28);
     g.lineWidth = 1.5;
-    g.strokeRect(28, 28, w - 56, h - 56);
-    // ornament
-    g.lineWidth = 2.5;
     g.beginPath();
-    g.arc(w / 2, h * 0.56, 26, 0, Math.PI * 2);
+    g.arc(w / 2, h * 0.56, 13, 0, Math.PI * 2);
     g.stroke();
     g.beginPath();
-    g.arc(w / 2, h * 0.56, 7, 0, Math.PI * 2);
+    g.arc(w / 2, h * 0.56, 3.5, 0, Math.PI * 2);
     g.fill();
-    // title lines
-    g.fillRect(w * 0.26, h * 0.22, w * 0.48, 7);
-    g.fillRect(w * 0.34, h * 0.22 + 16, w * 0.32, 4);
+    g.fillRect(w * 0.26, h * 0.22, w * 0.48, 4);
+    g.fillRect(w * 0.34, h * 0.22 + 8, w * 0.32, 2);
   });
 
   return { grain, paperU, paperV: toV(paperU), giltU, giltV: toV(giltU), tooling };
@@ -122,35 +117,33 @@ function makeTextures() {
 /* ── shared geometry (built once) ───────────────────────── */
 function makeGeometry() {
   const coverW = W - R;
-  const spine = new THREE.CylinderGeometry(R, R, H, 32, 1, true, Math.PI, Math.PI);
+  const spine = new THREE.CylinderGeometry(R, R, H, 20, 1, true, Math.PI, Math.PI);
   const bandParts = [-0.36, -0.12, 0.12, 0.36].map((k) => {
-    const b = new THREE.CylinderGeometry(R * 1.06, R * 1.06, 0.035, 32, 1, true, Math.PI, Math.PI);
+    const b = new THREE.CylinderGeometry(R * 1.06, R * 1.06, 0.035, 20, 1, true, Math.PI, Math.PI);
     b.translate(0, H * k, 0);
     return b;
   });
   const bands = mergeGeometries(bandParts);
-  const label = new THREE.CylinderGeometry(R * 1.035, R * 1.035, H * 0.14, 32, 1, true, Math.PI, Math.PI);
+  const label = new THREE.CylinderGeometry(R * 1.035, R * 1.035, H * 0.14, 20, 1, true, Math.PI, Math.PI);
   const pages = new THREE.BoxGeometry(coverW - OVER - 0.01, H - OVER * 2, D - BOARD * 2 - 0.004);
   const decor = new THREE.PlaneGeometry(coverW * 0.86, H * 0.9);
-  const board = new RoundedBoxGeometry(coverW, H, BOARD, 3, 0.012);
+  const board = new RoundedBoxGeometry(coverW, H, BOARD, 2, 0.012);
   return { coverW, spine, bands, label, pages, decor, board };
 }
 
 const leatherCache = new Map();
 function leatherMaterials(leather, tex) {
   if (leatherCache.has(leather.cover)) return leatherCache.get(leather.cover);
-  const cover = new THREE.MeshPhysicalMaterial({
+  // MeshStandardMaterial everywhere: one cheap shader program family,
+  // quick to compile and cheap per pixel (Physical+sheen was neither).
+  const cover = new THREE.MeshStandardMaterial({
     color: leather.cover,
-    roughness: 0.68,
+    roughness: 0.62,
     roughnessMap: tex.grain,
     bumpMap: tex.grain,
     bumpScale: 0.9,
-    metalness: 0.02,
-    clearcoat: 0.35,
-    clearcoatRoughness: 0.55,
-    sheen: 0.5,
-    sheenColor: new THREE.Color(leather.foil),
-    sheenRoughness: 0.85,
+    metalness: 0.04,
+    envMapIntensity: 1.1,
     side: THREE.DoubleSide,
   });
   const label = new THREE.MeshStandardMaterial({
@@ -174,21 +167,28 @@ function leatherMaterials(leather, tex) {
     transparent: true,
     depthWrite: false,
   });
-  // BoxGeometry face order: +x (fore-edge), -x, +y (top), -y (bottom), +z, -z
   const edgeU = leather.gilt ? tex.giltU : tex.paperU;
   const edgeV = leather.gilt ? tex.giltV : tex.paperV;
   const edgeProps = leather.gilt ? { metalness: 0.85, roughness: 0.32 } : { metalness: 0, roughness: 0.92 };
   const fore = new THREE.MeshStandardMaterial({ map: edgeU, ...edgeProps });
   const topBottom = new THREE.MeshStandardMaterial({ map: edgeV, ...edgeProps });
   const hidden = new THREE.MeshStandardMaterial({ color: "#E3D7BD", roughness: 0.95 });
+  // BoxGeometry face order: +x (fore-edge), -x, +y (top), -y (bottom), +z, -z
   const pages = [fore, hidden, topBottom, topBottom, hidden, hidden];
   const mats = { cover, label, foil, tooling, pages };
   leatherCache.set(leather.cover, mats);
   return mats;
 }
 
+const easeOutBack = (x) => {
+  const c1 = 1.4;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+};
+
 function Book({ seed, base, leather, scale, thick, geo, tex }) {
   const ref = useRef();
+  const born = useRef(null);
   const m = useMemo(() => leatherMaterials(leather, tex), [leather, tex]);
   const phase = rand(seed) * Math.PI * 2;
   const speed = 0.1 + rand(seed + 1) * 0.14;
@@ -200,6 +200,10 @@ function Book({ seed, base, leather, scale, thick, geo, tex }) {
   useFrame(({ clock }) => {
     const g = ref.current;
     if (!g) return;
+    if (born.current === null) born.current = clock.elapsedTime;
+    const grow = Math.min(1, (clock.elapsedTime - born.current) / 1.6);
+    const s = scale * Math.max(0.0001, easeOutBack(grow));
+    g.scale.set(s, s, s * thick);
     const t = clock.elapsedTime * speed + phase;
     g.position.set(
       base.pos[0] + Math.sin(t * 0.9) * drift,
@@ -214,17 +218,13 @@ function Book({ seed, base, leather, scale, thick, geo, tex }) {
   });
 
   return (
-    <group ref={ref} scale={[scale, scale, scale * thick]}>
-      {/* front + back boards */}
+    <group ref={ref} scale={0.0001}>
       <mesh geometry={geo.board} material={m.cover} position={[coverX, 0, boardZ]} />
       <mesh geometry={geo.board} material={m.cover} position={[coverX, 0, -boardZ]} />
-      {/* rounded spine, raised bands, leather label */}
       <mesh geometry={geo.spine} material={m.cover} position={[-W / 2 + R, 0, 0]} />
       <mesh geometry={geo.bands} material={m.cover} position={[-W / 2 + R, 0, 0]} />
       <mesh geometry={geo.label} material={m.label} position={[-W / 2 + R, H * 0.24, 0]} />
-      {/* page block */}
       <mesh geometry={geo.pages} material={m.pages} position={[coverX - OVER / 2 + 0.005, 0, 0]} />
-      {/* tooled gold frame on the front board */}
       <mesh geometry={geo.decor} material={m.tooling} position={[coverX + 0.01, 0, D / 2 + 0.0015]} />
     </group>
   );
@@ -232,7 +232,6 @@ function Book({ seed, base, leather, scale, thick, geo, tex }) {
 
 /* ── dust motes: round, twinkling, animated entirely on the GPU ── */
 function Dust({ count }) {
-  const mat = useRef();
   const geometry = useMemo(() => {
     const positions = new Float32Array(count * 3);
     const seeds = new Float32Array(count);
@@ -261,7 +260,6 @@ function Dust({ count }) {
   return (
     <points geometry={geometry} frustumCulled={false}>
       <shaderMaterial
-        ref={mat}
         uniforms={uniforms}
         transparent
         depthWrite={false}
@@ -296,7 +294,7 @@ function Dust({ count }) {
   );
 }
 
-/* ── layout: scatter books in screen space, keeping the copy column clear ── */
+/* ── layout: scatter books in screen space, keeping the copy and card clear ── */
 function useBooks(count, aspect) {
   return useMemo(() => {
     const tanHalf = Math.tan(THREE.MathUtils.degToRad(21));
@@ -305,11 +303,9 @@ function useBooks(count, aspect) {
     let i = 0;
     while (list.length < count && tries < 1500) {
       tries++;
-      const u = rand(tries * 3 + 1) * 2.1 - 1.05;  // screen-space x  (-1 … 1 = edges)
-      const v = rand(tries * 3 + 2) * 2.1 - 1.05;  // screen-space y
+      const u = rand(tries * 3 + 1) * 2.1 - 1.05;
+      const v = rand(tries * 3 + 2) * 2.1 - 1.05;
       const z = -1.5 - rand(tries * 3 + 3) * 4.5;
-      // keep the headline / copy column clear, and don't waste books
-      // behind the sign-in card where the glass would hide them
       const inCopy = u > -0.92 && u < -0.02 && v > -0.72 && v < 0.8;
       const inCard = u > 0.2 && u < 0.92 && v > -0.58 && v < 0.58;
       const inCenter = Math.abs(u) < 0.2 && Math.abs(v) < 0.35;
@@ -335,7 +331,7 @@ function useBooks(count, aspect) {
 
 function Rig({ variant, children }) {
   const group = useRef();
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
   const target = useRef(new THREE.Vector3());
 
   useFrame((state, delta) => {
@@ -351,6 +347,11 @@ function Rig({ variant, children }) {
       g.rotation.y += ((state.pointer.x * Math.PI) / 20 - g.rotation.y) * k;
       g.rotation.x += ((-state.pointer.y * Math.PI) / 30 - g.rotation.x) * k;
       g.rotation.z = Math.sin(state.clock.elapsedTime * 0.05) * 0.04;
+    }
+    // Inside the app the room sinks into haze (replaces a costly CSS blur).
+    if (scene.fog) {
+      scene.fog.near += ((inApp ? 4 : 9) - scene.fog.near) * k * 0.5;
+      scene.fog.far += ((inApp ? 19 : 26) - scene.fog.far) * k * 0.5;
     }
     const t = state.clock.elapsedTime;
     target.current.set(Math.sin(t * 0.07) * 0.35, Math.cos(t * 0.05) * 0.2, 8);
@@ -372,14 +373,11 @@ function Lights({ variant }) {
     <>
       <ambientLight intensity={0.28} color="#9DB4D0" />
       <hemisphereLight args={["#AFC3DC", "#2A1D0E", 0.7]} />
-      {/* warm reading-lamp key */}
       <spotLight ref={key} position={[6, 7, 6]} angle={0.6} penumbra={0.95} intensity={110} decay={1.6} distance={42} color="#FFD9A0" />
-      {/* cold moonlight rim */}
       <directionalLight position={[-6, 3, -8]} intensity={1.6} color="#9DB4D0" />
       <pointLight position={[-6, 2, 4]} intensity={14} distance={18} color="#FFCF8A" />
       <pointLight position={[-4, -3, 3]} intensity={8} distance={14} color="#D4A55A" />
-      {/* static studio reflections — rendered once, no network */}
-      <Environment resolution={128} frames={1}>
+      <Environment resolution={64} frames={1}>
         <Lightformer form="rect" intensity={2.4} color="#FFE2B0" position={[4, 5, 3]} scale={[6, 3, 1]} />
         <Lightformer form="rect" intensity={1.3} color="#9DB4D0" position={[-5, 1, -4]} scale={[4, 6, 1]} />
         <Lightformer form="ring" intensity={0.9} color="#ffffff" position={[0, -4, 4]} scale={3} />
@@ -388,10 +386,34 @@ function Lights({ variant }) {
   );
 }
 
+/** Step 2 — compile every shader in parallel without blocking the main thread. */
+function Warmup({ onWarm }) {
+  const { gl, scene, camera } = useThree();
+  useEffect(() => {
+    let cancelled = false;
+    const done = () => !cancelled && onWarm();
+    const p = gl.compileAsync ? gl.compileAsync(scene, camera) : Promise.resolve();
+    Promise.resolve(p).then(done, done);
+    return () => {
+      cancelled = true;
+    };
+  }, [gl, scene, camera, onWarm]);
+  return null;
+}
+
+/** Step 3 — once frames are flowing, tell the layer to fade in. */
+function ReadySignal({ onReady }) {
+  const frames = useRef(0);
+  useFrame(() => {
+    frames.current++;
+    if (frames.current === 4 && onReady) onReady();
+  });
+  return null;
+}
+
 /**
- * Drives rendering in "demand" mode: 60 fps on the gate and while the camera
- * is travelling between variants, then 30 fps inside the app. Halving the
- * redraws there halves the work the glass on top has to recomposite.
+ * Renders 60 fps on the gate and while the camera travels between variants,
+ * then 30 fps inside the app (half the redraws for the glass to recomposite).
  */
 function FrameDriver({ variant }) {
   const { invalidate } = useThree();
@@ -419,14 +441,18 @@ function FrameDriver({ variant }) {
   return null;
 }
 
-export default function AmbientScene({ variant = "gate" }) {
+export default function AmbientScene({ variant = "gate", onReady }) {
   const [visible, setVisible] = useState(() => !document.hidden);
-  const [dpr, setDpr] = useState(1.25);
+  const [warm, setWarm] = useState(false);
+  const [shown, setShown] = useState(0);
+  const [monitor, setMonitor] = useState(false);
+  const [dpr, setDpr] = useState(() => Math.min(window.devicePixelRatio || 1, 1.5));
   const compact = window.innerWidth < 768;
   const aspect = window.innerWidth / Math.max(1, window.innerHeight);
   const books = useBooks(compact ? 9 : 19, aspect);
   const tex = useMemo(makeTextures, []);
   const geo = useMemo(makeGeometry, []);
+  const onWarm = useCallback(() => setWarm(true), []);
 
   useEffect(() => {
     const onVis = () => setVisible(!document.hidden);
@@ -434,12 +460,27 @@ export default function AmbientScene({ variant = "gate" }) {
     return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
 
+  // Step 4 — add books one by one once rendering has started.
+  useEffect(() => {
+    if (!warm || shown >= books.length) return;
+    const id = setTimeout(() => setShown((n) => n + 1), shown === 0 ? 0 : 110);
+    return () => clearTimeout(id);
+  }, [warm, shown, books.length]);
+
+  // Adaptive resolution only after startup has settled, so a slow first
+  // second can never trigger a mid-animation canvas resize.
+  useEffect(() => {
+    if (!warm) return;
+    const id = setTimeout(() => setMonitor(true), 4500);
+    return () => clearTimeout(id);
+  }, [warm]);
+
   return (
     <div className="rr-scene" aria-hidden="true">
       <Canvas
         camera={{ position: [0, 0, 8], fov: 42 }}
         dpr={dpr}
-        frameloop={visible ? "demand" : "never"}
+        frameloop={visible && warm ? "demand" : "never"}
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance", stencil: false }}
         eventSource={document.body}
         eventPrefix="client"
@@ -448,21 +489,24 @@ export default function AmbientScene({ variant = "gate" }) {
           gl.toneMappingExposure = 1.08;
         }}
       >
-        <PerformanceMonitor
-          flipflops={2}
-          bounds={() => (variant === "app" ? [24, 29] : [48, 58])}
-          onDecline={() => setDpr(1)}
-          onIncline={() => setDpr(Math.min(1.5, window.devicePixelRatio || 1))}
-        />
-        {visible && <FrameDriver variant={variant} />}
+        {monitor && (
+          <PerformanceMonitor
+            flipflops={1}
+            bounds={() => (variant === "app" ? [24, 29] : [46, 58])}
+            onDecline={() => setDpr(1)}
+          />
+        )}
+        {warm && visible && <FrameDriver variant={variant} />}
+        {warm && <ReadySignal onReady={onReady} />}
         <fog attach="fog" args={["#07080C", 9, 26]} />
         <Lights variant={variant} />
         <Rig variant={variant}>
-          {books.map((b) => (
+          {books.slice(0, Math.max(shown, 1)).map((b) => (
             <Book key={b.seed} {...b} geo={geo} tex={tex} />
           ))}
         </Rig>
-        <Dust count={compact ? 400 : 1100} />
+        <Dust count={compact ? 400 : 1000} />
+        <Warmup onWarm={onWarm} />
       </Canvas>
     </div>
   );

@@ -1,12 +1,7 @@
 import React, { lazy, Suspense, useEffect, useState } from "react";
 
-// Start fetching the 3D chunk at boot, in parallel with the session check,
-// instead of waiting for React to reach the lazy boundary.
-const sceneModule =
-  typeof window !== "undefined" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ? import("./AmbientScene.jsx")
-    : null;
-const AmbientScene = lazy(() => sceneModule || import("./AmbientScene.jsx"));
+const loadScene = () => import("./AmbientScene.jsx");
+const AmbientScene = lazy(loadScene);
 
 function canRender3D() {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
@@ -18,22 +13,47 @@ function canRender3D() {
   }
 }
 
+const idle = (fn, timeout) =>
+  "requestIdleCallback" in window
+    ? window.requestIdleCallback(fn, { timeout })
+    : setTimeout(fn, 50);
+
 /**
- * Fixed background layer. A static painted backdrop is always present;
- * the live WebGL room fades in on top of it once loaded.
+ * Fixed background layer.
+ *
+ * A painted backdrop is on screen from the first frame. The live WebGL room
+ * is started only after the page's own entrance animation has played and the
+ * browser is idle (code fetched at ~0.9s, mounted at ~1.8s), so the two never compete for the main thread. It then
+ * warms up off-screen and fades in (opacity only) once frames are flowing.
  */
 export default function SceneLayer({ variant }) {
-  const [enabled, setEnabled] = useState(false);
-  useEffect(() => setEnabled(canRender3D()), []);
+  const [mount, setMount] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!canRender3D()) return;
+    let cancelled = false;
+    // Fetch the 3D code once the first paint and fonts have settled...
+    const prefetch = setTimeout(loadScene, 900);
+    // ...and mount it only after the entrance animation has fully played.
+    const mountAt = setTimeout(() => {
+      idle(() => !cancelled && setMount(true), 1200);
+    }, 1800);
+    return () => {
+      cancelled = true;
+      clearTimeout(prefetch);
+      clearTimeout(mountAt);
+    };
+  }, []);
 
   return (
-    <div className="rr-scene-layer" aria-hidden="true">
+    <div className={`rr-scene-layer ${ready ? "is-ready" : ""}`} aria-hidden="true">
       <div className="rr-scene-backdrop" />
       <div className="rr-scene-orb rr-scene-orb-a" />
       <div className="rr-scene-orb rr-scene-orb-b" />
-      {enabled && (
+      {mount && (
         <Suspense fallback={null}>
-          <AmbientScene variant={variant} />
+          <AmbientScene variant={variant} onReady={() => setReady(true)} />
         </Suspense>
       )}
     </div>
