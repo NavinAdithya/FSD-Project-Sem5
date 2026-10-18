@@ -5,6 +5,7 @@
 
 @import "./theme/fonts.css";
 @import "./theme/tokens.css";
+@import "./theme/landing.css";
 @import "./theme/animations.css";
 
 /* ── Reset ──────────────────────────────────────────────── */
@@ -117,7 +118,7 @@ body {
   transition: opacity 1.6s var(--rr-ease-out);
 }
 .rr-scene-layer.is-ready .rr-scene { opacity: 1; }
-.rr-scene canvas { display: block; }
+.rr-scene canvas { display: block; opacity: var(--rr-dim, 1); }
 
 .rr-vignette {
   position: fixed;
