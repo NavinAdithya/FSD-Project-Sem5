@@ -1,4 +1,6 @@
-const BASE = "/api";
+// Same-origin "/api" in dev (Vite proxy). Set VITE_API_BASE at build time
+// to point a static deployment (e.g. GitHub Pages) at a hosted backend.
+const BASE = import.meta.env.VITE_API_BASE || "/api";
 
 function getToken() {
   return localStorage.getItem("lms_token");
