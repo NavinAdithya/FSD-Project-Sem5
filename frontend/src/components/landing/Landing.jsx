@@ -326,11 +326,72 @@ function Closing() {
         </div>
       </motion.div>
 
-      <footer className="lp-footer">
-        <span>© 2026 NavinAdithya. All rights reserved.</span>
-        <span>Reading Room — Library Management System</span>
-      </footer>
     </section>
+  );
+}
+
+/* ── Footer: link columns, giant wordmark, credit ──────── */
+const REPO = "https://github.com/NavinAdithya/FSD-Project-Sem5";
+
+const goTo = (e, href) => {
+  e.preventDefault();
+  document.querySelector(href)?.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+function Wordmark() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-12% 0px" });
+  const text = "Reading Room";
+  return (
+    <div className="lp-wordmark-wrap" ref={ref}>
+      <p className={`lp-wordmark ${inView ? "is-in" : ""}`} role="img" aria-label="Reading Room">
+        {text.split("").map((ch, i) => (
+          <span className="lp-wm-rise" style={{ "--i": i }} key={i} aria-hidden="true">
+            <span className="lp-wm-char">{ch === " " ? " " : ch}</span>
+          </span>
+        ))}
+      </p>
+    </div>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="lp-foot">
+      <div className="lp-foot-top">
+        <motion.h2 {...reveal(0)}>
+          Every book, <em>accounted for.</em>
+        </motion.h2>
+        <motion.nav className="lp-foot-cols" aria-label="Footer" {...reveal(0.08)}>
+          <div>
+            <h3>Explore</h3>
+            <ul>
+              <li><a href="#features" onClick={(e) => goTo(e, "#features")}>Features</a></li>
+              <li><a href="#innovation" onClick={(e) => goTo(e, "#innovation")}>What's different</a></li>
+              <li><a href="#how" onClick={(e) => goTo(e, "#how")}>How it works</a></li>
+              <li><a href="#top" onClick={(e) => { e.preventDefault(); scrollToTop(); }}>Sign in</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Project</h3>
+            <ul>
+              <li><a href={REPO} target="_blank" rel="noopener noreferrer">Source on GitHub</a></li>
+              <li><span>Library management system</span></li>
+              <li><span>All rights reserved</span></li>
+            </ul>
+          </div>
+        </motion.nav>
+      </div>
+
+      <Wordmark />
+
+      <div className="lp-foot-bar">
+        <span className="lp-credit">
+          Developed by <strong>Navin Adithya</strong>
+        </span>
+        <span>© 2026 Navin Adithya. All rights reserved.</span>
+      </div>
+    </footer>
   );
 }
 
@@ -343,6 +404,7 @@ export default function Landing() {
         <Innovation />
         <HowItWorks />
         <Closing />
+        <Footer />
       </div>
     </MotionConfig>
   );
