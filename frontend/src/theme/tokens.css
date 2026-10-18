@@ -65,8 +65,8 @@
 
   /* ── Type ─────────────────────────────────────────────── */
   --rr-font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-  --rr-font-sans:    "Geist", "Segoe UI", system-ui, sans-serif;
-  --rr-font-mono:    "Geist Mono", "SFMono-Regular", Menlo, monospace;
+  --rr-font-sans:    "Geist Variable", "Segoe UI", system-ui, sans-serif;
+  --rr-font-mono:    "Geist Mono Variable", "SFMono-Regular", Menlo, monospace;
 
   /* ── Spacing ──────────────────────────────────────────── */
   --rr-space-2xs: 2px;

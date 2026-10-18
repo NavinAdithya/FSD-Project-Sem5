@@ -3,6 +3,7 @@
    Ink canvas · live 3D room · frosted double-bezel glass · brass
    ============================================================ */
 
+@import "./theme/fonts.css";
 @import "./theme/tokens.css";
 @import "./theme/animations.css";
 
@@ -112,13 +113,11 @@ body {
 .rr-scene {
   position: absolute;
   inset: 0;
-  animation: rr-scene-in 2.2s var(--rr-ease-out) both;
+  opacity: 0;
+  transition: opacity 1.6s var(--rr-ease-out);
 }
-.rr-scene canvas {
-  display: block;
-  transition: filter 1.2s var(--rr-ease-out), opacity 1.2s var(--rr-ease-out);
-}
-.rr-root.is-app .rr-scene canvas { filter: blur(3px) saturate(115%); opacity: 0.9; }
+.rr-scene-layer.is-ready .rr-scene { opacity: 1; }
+.rr-scene canvas { display: block; }
 
 .rr-vignette {
   position: fixed;
