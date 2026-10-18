@@ -1,11 +1,7 @@
-import React, { useState, useRef, useEffect, lazy, Suspense } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, GraduationCap, AlertTriangle, BookOpen } from "lucide-react";
+import { ShieldCheck, GraduationCap, AlertTriangle, BookOpen, ArrowUpRight } from "lucide-react";
 import BlurText from "../lib/BlurText.jsx";
-import Aurora from "../lib/Aurora.jsx";
-
-// Lazy-load signature 3D WebGL BookScene
-const BookScene = lazy(() => import("../three/BookScene.jsx"));
 
 // Spring config
 const spring = { type: "spring", stiffness: 340, damping: 28 };
@@ -15,16 +11,6 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [shake, setShake] = useState(false);
-  const [enable3D, setEnable3D] = useState(false);
-
-  useEffect(() => {
-    // Only enable WebGL 3D hero on larger screens and when reduced-motion is not requested
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isDesktop = window.innerWidth >= 640;
-    if (!prefersReduced && isDesktop) {
-      setEnable3D(true);
-    }
-  }, []);
 
   const [lib, setLib] = useState({ username: "librarian", password: "" });
   const [mem, setMem] = useState({ memberId: "", password: "" });
@@ -57,45 +43,54 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
   const [dir, setDir] = useState(1);
   const go = (m, d = 1) => { setDir(d); setMode(m); setError(""); };
 
+  const rise = (delay) => ({
+    initial: { opacity: 0, y: 24 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] },
+  });
+
   return (
     <div className="rr-gate">
-      {/* Immersive background */}
-      <div className="rr-gate-bg" aria-hidden="true">
-        <Aurora
-          colorStops={["#4A2C8A", "#1E5C8A", "#A0722A"]}
-          amplitude={1.2}
-          speed={0.4}
-          blend={0.55}
-        />
-        {/* 3D WebGL BookScene Hero */}
-        {enable3D && (
-          <Suspense fallback={null}>
-            <BookScene />
-          </Suspense>
-        )}
-      </div>
+      {/* Editorial copy — sits directly on the live 3D room */}
+      <section className="rr-gate-hero" aria-labelledby="gate-heading">
+        <motion.div className="rr-eyebrow" {...rise(0.1)}>
+          <span className="rr-eyebrow-dot" /> Library register · open late
+        </motion.div>
+        <h1 id="gate-heading" className="rr-gate-headline">
+          <BlurText text="Every book," stagger={0.08} delay={0.25} />
+          <br />
+          <em><BlurText text="accounted for." stagger={0.08} delay={0.5} /></em>
+        </h1>
+        <motion.p className="rr-gate-copy" {...rise(0.8)}>
+          Catalogue, circulation, reservations and fines — kept in one quiet room.
+          Sign in at the desk or with your member card.
+        </motion.p>
+        <motion.ul className="rr-gate-facts" {...rise(1)}>
+          <li><span>01</span>Issue and return in two clicks</li>
+          <li><span>02</span>Fines worked out the day a book comes back</li>
+          <li><span>03</span>Fair queues for titles that are out</li>
+        </motion.ul>
+      </section>
 
-      {/* Static fallback for reduced-motion / no-WebGL */}
-      <div className="rr-three-fallback" aria-hidden="true" />
-
-      {/* Glass login card */}
+      {/* Double-bezel glass card */}
       <motion.div
+        className="rr-gate-shell"
+        initial={{ opacity: 0, y: 40, rotateX: 12, scale: 0.94 }}
+        animate={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+        transition={{ type: "spring", stiffness: 120, damping: 20, delay: 0.35 }}
+      >
+      <div
         className={`rr-gate-card ${shake ? "rr-shake" : ""}`}
-        initial={{ opacity: 0, y: 32, scale: 0.92 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ ...spring, delay: 0.1 }}
-        role="main"
+        role="region"
         aria-label="Sign in to Reading Room"
       >
         {/* Brand */}
         <div className="rr-gate-brand">
           <div className="rr-gate-brand-icon" aria-hidden="true">
-            <BookOpen size={26} strokeWidth={1.4} />
+            <BookOpen size={22} strokeWidth={1.4} />
           </div>
           <div>
-            <h1 className="rr-gate-title">
-              <BlurText text="Reading Room" stagger={0.07} delay={0.2} />
-            </h1>
+            <div className="rr-gate-title">Reading Room</div>
             <div className="rr-gate-sub">Library Register</div>
           </div>
         </div>
@@ -133,18 +128,20 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
               <div>
                 <p className="rr-gate-lede">Who's signing in?</p>
                 <button className="rr-gate-option" onClick={() => go("librarian", 1)}>
-                  <ShieldCheck size={20} className="rr-gate-option-icon" />
-                  <div>
+                  <span className="rr-gate-option-icon"><ShieldCheck size={18} strokeWidth={1.5} /></span>
+                  <div className="rr-gate-option-text">
                     <div className="rr-gate-option-title">Librarian</div>
                     <div className="rr-gate-option-sub">Full desk access — catalog, members, circulation, fines</div>
                   </div>
+                  <span className="rr-island" aria-hidden="true"><ArrowUpRight size={15} strokeWidth={1.6} /></span>
                 </button>
                 <button className="rr-gate-option" onClick={() => go("member", 1)}>
-                  <GraduationCap size={20} className="rr-gate-option-icon" />
-                  <div>
+                  <span className="rr-gate-option-icon"><GraduationCap size={18} strokeWidth={1.5} /></span>
+                  <div className="rr-gate-option-text">
                     <div className="rr-gate-option-title">Student or staff</div>
                     <div className="rr-gate-option-sub">Browse the catalog, reserve titles, see your own loans</div>
                   </div>
+                  <span className="rr-island" aria-hidden="true"><ArrowUpRight size={15} strokeWidth={1.6} /></span>
                 </button>
               </div>
             )}
@@ -201,6 +198,7 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
             )}
           </motion.div>
         </AnimatePresence>
+      </div>
       </motion.div>
     </div>
   );

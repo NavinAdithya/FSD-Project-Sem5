@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
@@ -35,7 +36,7 @@ export default function Modal({ title, children, onClose, variant = "scale" }) {
     },
   }[variant] || {};
 
-  return (
+  return createPortal(
     <AnimatePresence mode="wait">
       {!closing && (
         <motion.div
@@ -67,6 +68,7 @@ export default function Modal({ title, children, onClose, variant = "scale" }) {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
