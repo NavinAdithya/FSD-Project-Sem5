@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, GraduationCap, AlertTriangle, BookOpen, ArrowUpRight } from "lucide-react";
+import { ShieldCheck, GraduationCap, AlertTriangle, BookOpen, ArrowUpRight, ArrowDown } from "lucide-react";
 import BlurText from "../lib/BlurText.jsx";
+import Landing from "./landing/Landing.jsx";
+import LandingNav from "./landing/LandingNav.jsx";
 
 // Spring config
 const spring = { type: "spring", stiffness: 340, damping: 28 };
@@ -49,12 +51,34 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
     transition: { duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] },
   });
 
+  // The story below the hero is off-screen, so it mounts after the entrance
+  // animation has finished instead of competing with it. A tall placeholder
+  // keeps the scrollbar (and therefore the layout width) stable meanwhile.
+  const [showLanding, setShowLanding] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShowLanding(true), 2100);
+    return () => clearTimeout(t);
+  }, []);
+
+  const seeFeatures = () => {
+    setShowLanding(true);
+    let tries = 0;
+    const go = () => {
+      const el = document.querySelector("#features");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      else if (tries++ < 30) requestAnimationFrame(go);
+    };
+    requestAnimationFrame(go);
+  };
+
   return (
-    <div className="rr-gate">
+    <main className="rr-landing" id="main">
+    <LandingNav />
+    <div className="rr-gate" id="top">
       {/* Editorial copy — sits directly on the live 3D room */}
       <section className="rr-gate-hero" aria-labelledby="gate-heading">
         <motion.div className="rr-eyebrow" {...rise(0.1)}>
-          <span className="rr-eyebrow-dot" /> Library register · open late
+          <span className="rr-eyebrow-dot" /> Library management system
         </motion.div>
         <h1 id="gate-heading" className="rr-gate-headline">
           <BlurText text="Every book," stagger={0.08} delay={0.25} />
@@ -65,7 +89,13 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
           Catalogue, circulation, reservations and fines — kept in one quiet room.
           Sign in at the desk or with your member card.
         </motion.p>
-        <motion.ul className="rr-gate-facts" {...rise(1)}>
+        <motion.div className="rr-gate-actions" {...rise(0.9)}>
+          <button type="button" className="lp-btn lp-btn-ghost" onClick={seeFeatures}>
+            See what's inside
+            <span className="rr-island" aria-hidden="true"><ArrowDown size={15} strokeWidth={1.8} /></span>
+          </button>
+        </motion.div>
+        <motion.ul className="rr-gate-facts" {...rise(1.05)}>
           <li><span>01</span>Issue and return in two clicks</li>
           <li><span>02</span>Fines worked out the day a book comes back</li>
           <li><span>03</span>Fair queues for titles that are out</li>
@@ -201,5 +231,7 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
       </div>
       </motion.div>
     </div>
+    {showLanding ? <Landing /> : <div className="lp-placeholder" aria-hidden="true" />}
+    </main>
   );
 }

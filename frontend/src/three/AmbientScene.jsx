@@ -4,6 +4,7 @@ import { Environment, Lightformer, PerformanceMonitor } from "@react-three/drei"
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import * as THREE from "three";
+import { scrollState } from "./scrollState.js";
 
 /**
  * AmbientScene — one persistent WebGL layer behind the whole app.
@@ -342,10 +343,12 @@ function Rig({ variant, children }) {
     if (g) {
       const depth = inApp ? -5.5 : 0;
       const scale = inApp ? 1.35 : 1;
-      g.position.z += (depth - g.position.z) * k * 0.6;
+      const sp = inApp ? 0 : scrollState.p;
+      g.position.z += (depth + sp * 0.4 - g.position.z) * k * 0.6;
+      g.position.y += (sp * 5 - g.position.y) * k * 0.5;
       g.scale.setScalar(g.scale.x + (scale - g.scale.x) * k * 0.6);
-      g.rotation.y += ((state.pointer.x * Math.PI) / 20 - g.rotation.y) * k;
-      g.rotation.x += ((-state.pointer.y * Math.PI) / 30 - g.rotation.x) * k;
+      g.rotation.y += ((state.pointer.x * Math.PI) / 20 + sp * 0.32 - g.rotation.y) * k;
+      g.rotation.x += ((-state.pointer.y * Math.PI) / 30 + sp * 0.12 - g.rotation.x) * k;
       g.rotation.z = Math.sin(state.clock.elapsedTime * 0.05) * 0.04;
     }
     // Inside the app the room sinks into haze (replaces a costly CSS blur).
