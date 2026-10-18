@@ -1,10 +1,9 @@
-/* TiltedCard styles */
+/* TiltedCard styles — transform is written per frame by JS while active */
 .rr-tilted-card {
   position: relative;
   transform-style: preserve-3d;
-  transition: transform var(--rr-dur-base) var(--rr-ease-out);
-  will-change: transform;
 }
+.rr-tilted-card.is-tilting { will-change: transform; }
 
 .rr-tilted-glare {
   position: absolute;
@@ -12,21 +11,11 @@
   border-radius: inherit;
   pointer-events: none;
   z-index: 5;
-  mix-blend-mode: overlay;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .rr-tilted-card {
-    transition: none !important;
-    transform: none !important;
-  }
-  .rr-tilted-glare {
-    display: none;
-  }
-}
-
-@media (pointer: coarse) {
-  .rr-tilted-card {
-    transform: none !important;
-  }
+@media (prefers-reduced-motion: reduce), (pointer: coarse) {
+  .rr-tilted-card { transform: none !important; }
+  .rr-tilted-glare { display: none; }
 }

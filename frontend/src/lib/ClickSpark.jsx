@@ -12,7 +12,7 @@ const SPARK_DISTANCE = 40;
 
 export default function ClickSpark({
   children,
-  color = "#C89840",
+  color = "#E6C285",
   className = "",
 }) {
   const [sparks, setSparks] = useState([]);

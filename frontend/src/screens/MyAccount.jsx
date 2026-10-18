@@ -97,7 +97,7 @@ export default function MyAccount({ member, books, loans, queueSummary, onRenew,
   return (
     <section className="rr-screen">
       <header className="rr-header">
-        <motion.h1 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+        <motion.h1 initial={{ opacity: 0, y: 24, filter: "blur(10px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)", transitionEnd: { filter: "none" } }} transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}>
           My account
         </motion.h1>
         <p>{member.name} · {member.memberId} · {member.role}</p>

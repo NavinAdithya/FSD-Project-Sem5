@@ -7,17 +7,17 @@ const CATEGORIES = ["Computer Science", "Science", "Politics", "History", "Liter
 
 // Deterministic color from category name
 const CAT_COLORS = {
-  "Computer Science": { spine: "#4A2C8A", glow: "rgba(74,44,138,0.25)" },
-  "Science":          { spine: "#1E5C8A", glow: "rgba(30,92,138,0.25)" },
-  "Politics":         { spine: "#7A3020", glow: "rgba(122,48,32,0.25)" },
-  "History":          { spine: "#5C4A1E", glow: "rgba(92,74,30,0.25)" },
-  "Literature":       { spine: "#2E7D52", glow: "rgba(46,125,82,0.25)" },
-  "Mathematics":      { spine: "#6B42B8", glow: "rgba(107,66,184,0.25)" },
-  "Other":            { spine: "#8A6020", glow: "rgba(138,96,32,0.25)" },
+  "Computer Science": { spine: "#2B3E66", glow: "rgba(91,120,180,0.35)" },
+  "Science":          { spine: "#1E4A47", glow: "rgba(70,150,140,0.30)" },
+  "Politics":         { spine: "#6E2624", glow: "rgba(190,80,70,0.30)" },
+  "History":          { spine: "#7A5530", glow: "rgba(212,165,90,0.32)" },
+  "Literature":       { spine: "#2C4A36", glow: "rgba(110,170,120,0.30)" },
+  "Mathematics":      { spine: "#4A2A44", glow: "rgba(170,110,160,0.30)" },
+  "Other":            { spine: "#4A4A52", glow: "rgba(200,200,210,0.22)" },
 };
 
 function getCatColor(category) {
-  return CAT_COLORS[category] || { spine: "#4A2C8A", glow: "rgba(74,44,138,0.25)" };
+  return CAT_COLORS[category] || CAT_COLORS.Other;
 }
 
 export function BookCard({ book, role, onDelete, onReserve, onOpen, queueLength, myQueuePosition }) {
@@ -25,7 +25,7 @@ export function BookCard({ book, role, onDelete, onReserve, onOpen, queueLength,
   const colors = getCatColor(book.category);
 
   return (
-    <TiltedCard className="rr-book-card-tilt">
+    <TiltedCard className="rr-book-card-tilt" maxTilt={9} glareColor="rgba(255,236,200,0.12)">
       <div
         className="rr-index-card"
         onClick={onOpen}
@@ -37,7 +37,7 @@ export function BookCard({ book, role, onDelete, onReserve, onOpen, queueLength,
         {/* Book spine accent */}
         <div
           className="rr-index-spine"
-          style={{ background: colors.spine, boxShadow: `2px 0 12px ${colors.glow}` }}
+          style={{ "--rr-spine": colors.spine, "--rr-spine-glow": colors.glow }}
           aria-hidden="true"
         />
         <div className="rr-index-content">
