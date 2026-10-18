@@ -40,7 +40,7 @@
   /* ── Text (light) ───────────────────────────────────────── */
   --rr-text:             #1E1830;
   --rr-text-soft:        #5A5270;
-  --rr-text-xsoft:       #8B84A4;
+  --rr-text-xsoft:       #6C6780;
   --rr-text-on-dark:     #EDE8F8;
   --rr-text-on-primary:  #FFFFFF;
 
@@ -114,7 +114,7 @@
 
   --rr-text:            #EDE8F8;
   --rr-text-soft:       #9B94BC;
-  --rr-text-xsoft:      #6E6888;
+  --rr-text-xsoft:      #7D779B;
 
   --rr-bg-gradient:
     radial-gradient(ellipse 80% 60% at 15% -10%, rgba(107, 66, 184, 0.20) 0%, transparent 60%),
@@ -142,7 +142,7 @@
     --rr-rail-border:     rgba(80, 60, 150, 0.20);
     --rr-text:            #EDE8F8;
     --rr-text-soft:       #9B94BC;
-    --rr-text-xsoft:      #6E6888;
+    --rr-text-xsoft:      #7D779B;
     --rr-bg-gradient:
       radial-gradient(ellipse 80% 60% at 15% -10%, rgba(107, 66, 184, 0.20) 0%, transparent 60%),
       radial-gradient(ellipse 60% 50% at 88% 8%,  rgba(30, 92, 138, 0.18) 0%, transparent 55%),
