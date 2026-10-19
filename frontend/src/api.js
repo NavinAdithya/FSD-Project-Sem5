@@ -2,7 +2,16 @@
 // On static hosts (e.g. GitHub Pages), VITE_API_BASE must be set to a live backend URL.
 function resolveBase() {
   const configured = (import.meta.env.VITE_API_BASE || "").trim();
-  if (configured) return configured.replace(/\/+$/, "");
+  if (configured) {
+    try {
+      const url = new URL(configured);
+      const path = url.pathname.replace(/\/+$/, "");
+      if (!path) url.pathname = "/api";
+      return url.toString().replace(/\/+$/, "");
+    } catch (_) {
+      return configured.replace(/\/+$/, "");
+    }
+  }
 
   const host = window.location.hostname;
   if (host === "localhost" || host === "127.0.0.1") return "/api";
