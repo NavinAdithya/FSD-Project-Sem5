@@ -61,6 +61,8 @@ librarian or a member on the login screen.
 > hosted backend base URL including `/api` (example:
 > `https://your-backend.example.com/api`). Without it, login requests cannot be
 > routed to the backend.
+> If you set only an origin URL (example: `https://your-backend.example.com`),
+> the frontend now auto-normalizes it to `.../api`.
 
 ## 3. Build for production
 
