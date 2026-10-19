@@ -1,6 +1,18 @@
-// Same-origin "/api" in dev (Vite proxy). Set VITE_API_BASE at build time
-// to point a static deployment (e.g. GitHub Pages) at a hosted backend.
-const BASE = import.meta.env.VITE_API_BASE || "/api";
+// Same-origin "/api" is valid in local dev via Vite proxy.
+// On static hosts (e.g. GitHub Pages), VITE_API_BASE must be set to a live backend URL.
+function resolveBase() {
+  const configured = (import.meta.env.VITE_API_BASE || "").trim();
+  if (configured) return configured.replace(/\/+$/, "");
+
+  const host = window.location.hostname;
+  if (host === "localhost" || host === "127.0.0.1") return "/api";
+
+  throw new Error(
+    "API is not configured for this deployment. Set VITE_API_BASE to your backend URL (including /api)."
+  );
+}
+
+const BASE = resolveBase();
 
 function getToken() {
   return localStorage.getItem("lms_token");

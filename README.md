@@ -57,6 +57,11 @@ Opens on **http://localhost:5173** and proxies `/api/*` requests to the
 backend at `localhost:4000` (see `frontend/vite.config.js`). Sign in as the
 librarian or a member on the login screen.
 
+> For static deployments (like GitHub Pages), set `VITE_API_BASE` to your
+> hosted backend base URL including `/api` (example:
+> `https://your-backend.example.com/api`). Without it, login requests cannot be
+> routed to the backend.
+
 ## 3. Build for production
 
 ```bash
