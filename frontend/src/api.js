@@ -1,15 +1,22 @@
 // Same-origin "/api" is valid in local dev via Vite proxy.
 // On static hosts (e.g. GitHub Pages), VITE_API_BASE must be set to a live backend URL.
+function normalizeApiPath(pathname) {
+  const cleaned = (pathname || "").replace(/\/+$/, "");
+  if (!cleaned) return "/api";
+  if (cleaned.endsWith("/api/auth")) return "/api";
+  if (cleaned.endsWith("/auth")) return cleaned.slice(0, -"/auth".length) || "/api";
+  return cleaned;
+}
+
 function resolveBase() {
   const configured = (import.meta.env.VITE_API_BASE || "").trim();
   if (configured) {
     try {
       const url = new URL(configured);
-      const path = url.pathname.replace(/\/+$/, "");
-      if (!path) url.pathname = "/api";
+      url.pathname = normalizeApiPath(url.pathname);
       return url.toString().replace(/\/+$/, "");
     } catch (_) {
-      return configured.replace(/\/+$/, "");
+      return normalizeApiPath(configured);
     }
   }
 
@@ -29,7 +36,8 @@ function getToken() {
 
 async function request(path, { method = "GET", body, headers = {}, raw = false } = {}) {
   const token = getToken();
-  const res = await fetch(`${BASE}${path}`, {
+  const url = `${BASE}${path}`;
+  const res = await fetch(url, {
     method,
     headers: {
       ...(body ? { "Content-Type": "application/json" } : {}),
@@ -44,6 +52,9 @@ async function request(path, { method = "GET", body, headers = {}, raw = false }
       const data = await res.json();
       if (data && data.error) message = data.error;
     } catch (_) {}
+    if (res.status === 405) {
+      message = `${message}. API endpoint: ${url}. Check VITE_API_BASE points to backend /api.`;
+    }
     throw new Error(message);
   }
   if (raw) return res;
