@@ -33,7 +33,8 @@ router.post("/issue", requireAuth, requireRole("librarian"), (req, res) => {
   if (book.availableCopies < 1) return res.status(409).json({ error: "No copies available" });
 
   const issueDate = new Date();
-  const dueDate = addDays(issueDate, Number(days) || 14);
+  const loanDays = Math.min(60, Math.max(1, parseInt(days, 10) || 14));
+  const dueDate = addDays(issueDate, loanDays);
   const loan = {
     id: uid("l"),
     bookId,

@@ -35,8 +35,12 @@ router.get("/categories", requireAuth, requireRole("librarian"), (req, res) => {
 });
 
 function csvEscape(val) {
-  const s = String(val ?? "");
-  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  let s = String(val ?? "");
+  // Mitigate CSV / Formula Injection (CWE-1236)
+  if (/^[=+\-@\t\r]/.test(s)) {
+    s = "'" + s;
+  }
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 

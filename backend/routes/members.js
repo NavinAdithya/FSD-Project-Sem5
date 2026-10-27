@@ -18,18 +18,25 @@ router.get("/", requireAuth, requireRole("librarian"), (req, res) => {
 // Librarian can register a member directly; default password = memberId (member should log in and note it)
 router.post("/", requireAuth, requireRole("librarian"), (req, res) => {
   const { name, memberId, role, contact } = req.body || {};
-  if (!name || !memberId) return res.status(400).json({ error: "Name and member ID are required" });
+  const cleanName = typeof name === "string" ? name.trim() : "";
+  const cleanId = typeof memberId === "string" ? memberId.trim() : "";
+  const cleanContact = typeof contact === "string" ? contact.trim() : "";
+  const cleanRole = role === "staff" ? "staff" : "student";
+
+  if (!cleanName || cleanName.length > 100) return res.status(400).json({ error: "Name is required (max 100 characters)" });
+  if (!cleanId || cleanId.length > 50) return res.status(400).json({ error: "Member ID is required (max 50 characters)" });
+
   const db = load();
-  if (db.members.some((m) => m.memberId.toLowerCase() === memberId.toLowerCase())) {
+  if (db.members.some((m) => m.memberId.toLowerCase() === cleanId.toLowerCase())) {
     return res.status(409).json({ error: "That member ID is already registered" });
   }
   const member = {
     id: uid("m"),
-    memberId,
-    name,
-    role: role === "staff" ? "staff" : "student",
-    contact: contact || "",
-    passwordHash: bcrypt.hashSync(memberId, 10),
+    memberId: cleanId,
+    name: cleanName,
+    role: cleanRole,
+    contact: cleanContact,
+    passwordHash: bcrypt.hashSync(cleanId.toLowerCase(), 10),
   };
   db.members.push(member);
   save(db);

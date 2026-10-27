@@ -39,6 +39,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.ref_name == 'main' || github.ref_name == 'ui/immersive-redesign'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
