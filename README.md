@@ -57,14 +57,10 @@ Opens on **http://localhost:5173** and proxies `/api/*` requests to the
 backend at `localhost:4000` (see `frontend/vite.config.js`). Sign in as the
 librarian or a member on the login screen.
 
-> For static deployments (like GitHub Pages), set `VITE_API_BASE` to your
-> hosted backend base URL including `/api` (example:
-> `https://your-backend.example.com/api`). Without it, login requests cannot be
-> routed to the backend.
-> If you set only an origin URL (example: `https://your-backend.example.com`),
-> the frontend now auto-normalizes it to `.../api`.
-> If you accidentally set an auth endpoint (like `.../api/auth`), it is
-> normalized back to `.../api`.
+> **Static Deployments (like GitHub Pages):**
+> - If `VITE_API_BASE` is not set, the frontend runs in an interactive demo mode powered by local in-browser storage, allowing immediate testing of all features without requiring a live backend.
+> - To connect to your hosted Express backend, set the repository variable `VITE_API_BASE` to your backend URL (e.g., `https://your-backend.example.com/api`).
+> - The frontend auto-normalizes origins and paths (e.g., `https://your-backend.example.com` automatically routes to `.../api`).
 
 ## 3. Build for production
 

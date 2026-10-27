@@ -185,7 +185,14 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
                   <button type="button" className="rr-btn" onClick={() => go("choose", -1)}>Back</button>
                   <button type="submit" className="rr-btn rr-btn-primary" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
                 </div>
-                <div className="rr-form-hint">Demo: librarian / librarian123</div>
+                <button
+                  type="button"
+                  className="rr-form-hint"
+                  onClick={() => setLib({ username: "librarian", password: "librarian123" })}
+                  title="Click to fill credentials"
+                >
+                  Demo: librarian / librarian123 (click to autofill)
+                </button>
               </form>
             )}
 
@@ -201,7 +208,14 @@ export default function LoginGate({ onLibrarianLogin, onMemberLogin, onMemberReg
                 <div className="rr-gate-links">
                   <button type="button" className="rr-link" onClick={() => go("register", 1)}>New here? Register</button>
                 </div>
-                <div className="rr-form-hint">Demo: stu-2041 / stu-2041</div>
+                <button
+                  type="button"
+                  className="rr-form-hint"
+                  onClick={() => setMem({ memberId: "STU-2041", password: "stu-2041" })}
+                  title="Click to fill credentials"
+                >
+                  Demo: STU-2041 / stu-2041 (click to autofill)
+                </button>
               </form>
             )}
 

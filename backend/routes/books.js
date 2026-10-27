@@ -27,16 +27,27 @@ router.get("/", requireAuth, (req, res) => {
 
 router.post("/", requireAuth, requireRole("librarian"), (req, res) => {
   const { title, author, isbn, category, totalCopies } = req.body || {};
-  if (!title || !author) return res.status(400).json({ error: "Title and author are required" });
+  const cleanTitle = typeof title === "string" ? title.trim() : "";
+  const cleanAuthor = typeof author === "string" ? author.trim() : "";
+  const cleanIsbn = typeof isbn === "string" ? isbn.trim().slice(0, 30) : "";
+  const cleanCategory = typeof category === "string" && category.trim() ? category.trim() : "Other";
+
+  if (!cleanTitle || cleanTitle.length > 200) {
+    return res.status(400).json({ error: "Title is required (max 200 characters)" });
+  }
+  if (!cleanAuthor || cleanAuthor.length > 200) {
+    return res.status(400).json({ error: "Author is required (max 200 characters)" });
+  }
+
   const db = load();
-  const copies = Math.max(1, Number(totalCopies) || 1);
+  const copies = Math.min(1000, Math.max(1, parseInt(totalCopies, 10) || 1));
   const book = {
     id: uid("b"),
-    title,
-    author,
-    isbn: isbn || "",
-    category: category || "Other",
-    callNumber: nextCallNumber(db.books, category || "Other"),
+    title: cleanTitle,
+    author: cleanAuthor,
+    isbn: cleanIsbn,
+    category: cleanCategory,
+    callNumber: nextCallNumber(db.books, cleanCategory),
     totalCopies: copies,
     availableCopies: copies,
   };
