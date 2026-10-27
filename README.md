@@ -72,7 +72,7 @@ cd ../backend && npm start     # serve the API; point any static host at fronten
   reservation queues, fine calculation — so they can't be bypassed by editing
   browser state.
 - Data lives in `backend/data/db.json` (a lightweight JSON file store) instead
-  of the Claude-artifact `window.storage` API, so it works as a normal app
+  of browser-only `window.storage` / local storage, so it works as a normal app
   anywhere Node runs.
 - Members only ever see their own loans/reservations over the API; the full
   reservation queue (with other members' names) is librarian-only.
